@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -26,6 +27,14 @@ var Partners [5]PartnerLocation
 
 var bogotalimit1 [2]float64 = [2]float64{4.784373420346989, -73.99595035691422}
 var bogotalimit2 [2]float64 = [2]float64{4.490865002856506, -74.27598825255971}
+
+func getEnv(fallback string) string {
+	value, exists := os.LookupEnv("PORT")
+	if !exists {
+		value = fallback
+	}
+	return ":" + value
+}
 
 func generatePartners(userlocation [2]float64) {
 	var maxdistance float64 = 2000
@@ -56,7 +65,7 @@ func manhattanDistance(coord1 [2]float64, coord2 [2]float64) float64 {
 	return distance
 }
 
-func closestPartners(userlocation [2]float64) [5]PartnerLocation {
+func closestPartners(userlocation [2]float64) PartnerLocation {
 	generatePartners(userlocation)
 	orderedpartners := Partners
 
@@ -73,7 +82,7 @@ func closestPartners(userlocation [2]float64) [5]PartnerLocation {
 		}
 	}
 
-	return orderedpartners
+	return orderedpartners[0]
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -89,7 +98,7 @@ func returnAllPartners(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(Partners)
 }
 
-func returnClosestsPartners(w http.ResponseWriter, r *http.Request) {
+func returnClosestPartners(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Endpoint Hit: closestPartner")
 
 	var userlocation []UserLocation
@@ -130,24 +139,12 @@ func handleRequests() {
 	myrouter.HandleFunc("/", home)
 	myrouter.HandleFunc("/all-partners", returnAllPartners).Methods("GET")
 	myrouter.HandleFunc("/partner/{partnerid}", returnSingleClosestPartner).Methods("GET")
-	myrouter.HandleFunc("/closests-partners", returnClosestsPartners).Methods("POST")
-	log.Fatal(http.ListenAndServe(":10000", myrouter))
+	myrouter.HandleFunc("/closest-partners", returnClosestPartners).Methods("POST")
+	//fmt.Println(getEnv(":10000"))
+	log.Fatal(http.ListenAndServe(getEnv("10000"), myrouter))
 }
 
 func main() {
 	fmt.Println("Trying")
-	Partners = [5]PartnerLocation{
-		{Partnerid: 1, Partnerlocation: [2]float64{4.64087273964227, -74.08795803227153}},
-		{Partnerid: 2, Partnerlocation: [2]float64{4.6440701368879855, -74.0851685349478}},
-		{Partnerid: 3, Partnerlocation: [2]float64{4.642439316245012, -74.08092019197085}},
-		{Partnerid: 4, Partnerlocation: [2]float64{4.633499379247723, -74.07992241027031}},
-		{Partnerid: 5, Partnerlocation: [2]float64{4.62881549146964, -74.08204671977938}}}
-
-	/*var userlocation UserLocation = UserLocation{Userid: 1,
-		Userlocation: [2]float64{4.638913870896805, -74.08381574852237}}
-
-	postbody, _ := json.Marshal(userlocation)
-	responsebody := bytes.NewBuffer(postbody)*/
-
 	handleRequests()
 }
