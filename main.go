@@ -115,7 +115,7 @@ func returnClosestPartners(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Coordinates aren't from Bogotá")
 	}
 	closestspartners := closestPartners(userlocation[0].Userlocation)
-	fmt.Fprintf(w, "%+v\n", closestspartners)
+	json.NewEncoder(w).Encode(closestspartners)
 }
 
 func returnSingleClosestPartner(w http.ResponseWriter, r *http.Request) {
@@ -145,6 +145,5 @@ func handleRequests() {
 }
 
 func main() {
-	fmt.Println("Trying")
 	handleRequests()
 }
