@@ -191,7 +191,7 @@ func returnClosestPartner(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Coordinates aren't from Bogotá")
 		json.NewEncoder(w).Encode("Bad coordinates")
 	} else {
-		closestspartners := closestPartners(userlocation[0].Userlocation, 5)
+		closestspartners := closestPartners(userlocation[0].Userlocation, 0)
 		json.NewEncoder(w).Encode(closestspartners)
 	}
 }
